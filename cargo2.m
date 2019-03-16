@@ -12,7 +12,7 @@ c_f = 0.47;
 Wind = csvread("out (4).csv");
 XWdata = 1:1600;
 YWdata = 1:1600;
-Fdata = 1:100000;
+Fdata = 1:200000;
 mass = input("Input mass (kg):");
 
 Fgenerate();
