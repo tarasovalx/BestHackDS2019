@@ -5,15 +5,15 @@ global S = 0;
 global Wind = importdata("out.csv");
 global XWdata = 1:1600;
 global YWdata = 1:1600;
-global Fdata = 1:30000;
+global Fdata = 1:100000;
 global Rdata;
 
 function Fgenerate()
   global c_f;
   global mass;
-  global S;
   global Fdata;
   global Rdata;
+  svec = 1:(rows(Rdata)  + 1);
   svec(1) = 0;
   for i = 1:rows(Rdata)
     v = fix(Rdata(i, 1) * 100 + 1);
@@ -22,12 +22,8 @@ function Fgenerate()
       svec(i) = 2 * Rdata(i, 2) / (1.29 * c_f * Rdata(i, 1) * Rdata(i, 1));
     endif
   endfor
-  if svec(1) == 0
-    svec(1) = svec(2);
-  endif
-  S = sum(svec) / rows(Rdata);
-  svec(rows(Rdata) + 1) = svec(rows(Rdata));
-  Rdata(rows(Rdata) + 1, 1) = 300;
+  svec(end) = svec(end - 1);
+  Rdata(end + 1, 1) = 1000;
   for u = 1:(rows(Rdata) - 1)
     first = Rdata(u, 1) * 100 + 1;
     second = Rdata(u + 1, 1) * 100;
@@ -73,7 +69,6 @@ end
 function dYdt = f(Y, t)
   global c_f;
   global mass;
-  global S;
   global Fdata;
   global XWdata;
   global YWdata;
@@ -92,9 +87,10 @@ function dYdt = f(Y, t)
   dYdt(4) = - (R / mass) * Y(4) / vLength;    % dvx/dt = 0
   dYdt(5) = - (R / mass) * Y(5) / vLength - g;   % dvy/dt = -g
   dYdt(6) = - (R / mass) * Y(6) / vLength;   % dvz/dt = 0
+  
 endfunction
 
-
+mass = input("Input mass (kg):");
 Fgenerate();
 Wgenerate();
 %-------------------------------------------------------------------------------
@@ -102,21 +98,24 @@ Wgenerate();
 %-------------------------------------------------------------------------------
 
 % начальна€ скорость снар€да
-v0 = 400;
+v0 = input("Input start speed(m/s): ");
 % угол наклона ствола пушки к горизонту
 vector = [10, 0, 10];
-vector /= norm(vector, 1); 
+vector /= norm(vector, 1);
+vLength = sqrt(sum(vector.*vector)); 
 %-------------------------------------------------------------------------------
 % Ќачальные услови€
 %-------------------------------------------------------------------------------
 x0 = 0;
-y0 = 1000;
+y0 = input("Input start height(m): ");
 z0 = 0;
-vx0 = v0 * vector(1);
-vy0 = v0 * vector(2);
-vz0 = v0 * vector(3);
+vx0 = v0 * vector(1) / vLength;
+vy0 = v0 * vector(2) / vLength;
+vz0 = v0 * vector(3) / vLength;
 Y0 = [x0; y0; z0; vx0; vy0; vz0];
-
+finish(1) = input("Input finish x coordinate (m): ");
+finish(2) = 0;
+finish(3) = input("Input finish z coordinate (m): ");
 %-------------------------------------------------------------------------------
 % ѕараметры временного интервала
 %-------------------------------------------------------------------------------
@@ -126,17 +125,34 @@ t0 = 0;
 % конечный момент времени
 tend = 37.0;
 % шаг выдачи решени€
-deltaT = 0.1;
+deltaT = 0.003;
 
 % ћассив интересующих нас моментов времени
 t = [t0:deltaT:tend];
 
 % »нтрегрируем систему уравнений движени€
 Y = lsode("f", Y0, t);
-axis([0 3000 0 3000 0 3000]);
-
-% –исуем траекторию полета снар€да
-plot3(Y(:,1), Y(:,3), Y(:,2));
+for i = 1:rows(Y)
+  if Y(i, 2) > 0
+    result(end + 1, :) = Y(i, :); 
+    if rows(Y) < 500 || mod(i  - 1, fix(rows(Y) / 500)) == 0
+      ploter(end + 1, 1:3) = Y(i, 1:3);
+    endif
+  endif
+endfor
+vec = result(end, 1:3);
+vec(2) -= vec(2);
+vec = finish - vec;
+result(:,1) += vec(1);
+result(:,3) += vec(3);
+ploter(:,1) += vec(1);
+ploter(:,3) += vec(3);
+csvwrite("result.csv", result);
+plot3(ploter(:,1), ploter(:,3), ploter(:,2));
+vector
+startpoint = result(1, 1:3)
+grid on;
 xlabel("x");
 ylabel("z");
 zlabel("y");
+clear
