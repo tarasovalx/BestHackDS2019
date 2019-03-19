@@ -1,4 +1,4 @@
-load data2.mat
+
 global c_f;
 global mass;
 global Wind;
@@ -9,49 +9,38 @@ global Rdata;
 
 
 c_f = 0.47;
-Wind = csvread("out (4).csv");
+Wind = csvread("W.csv");
 XWdata = 1:1600;
 YWdata = 1:1600;
 Fdata = 1:200000;
-mass = input("Input mass (kg):");
+mass = input("Input mass (kg): ");
+Rdata = csvread("F.csv");
 
 Fgenerate();
 Wgenerate();
-%-------------------------------------------------------------------------------
-% ѕараметры стрельбы
-%-------------------------------------------------------------------------------
 
 % начальна€ скорость снар€да
-v0 = input("Input start speed(m/s): ");
-% угол наклона ствола пушки к горизонту
-vect = [10, 0, 10];
-vect = vect / norm(vect, 1);
-vLength = sqrt(sum(vect.*vect)); 
-%-------------------------------------------------------------------------------
-% Ќачальные услови€
-%-------------------------------------------------------------------------------
+v0 = input("Input start speed (m/s): ");
+vector = [10, 0, 10];
+vector = vector / norm(vector, 1);
+vLength = sqrt(sum(vector.*vector)); 
 x0 = 0;
-y0 = input("Input start height(m): ");
+y0 = input("Input start height (m): ");
 z0 = 0;
-vx0 = v0 * vect(1) / vLength;
-vy0 = v0 * vect(2) / vLength;
-vz0 = v0 * vect(3) / vLength;
+vx0 = v0 * vector(1) / vLength;
+vy0 = v0 * vector(2) / vLength;
+vz0 = v0 * vector(3) / vLength;
 Y0 = [x0; y0; z0; vx0; vy0; vz0];
 finish(1) = input("Input finish x coordinate (m): ");
 finish(2) = 0;
 finish(3) = input("Input finish z coordinate (m): ");
-%-------------------------------------------------------------------------------
-% ѕараметры временного интервала
-%-------------------------------------------------------------------------------
-
 % начальный момент времени
 t0 = 0;
 % конечный момент времени
 tend = 37.0;
 % шаг выдачи решени€
-deltaT = 0.003;
+deltaT = 0.004;
 
-% ћассив интересующих нас моментов времени
 t = t0:deltaT:tend;
 
 % »нтрегрируем систему уравнений движени€
@@ -75,9 +64,11 @@ ploter(:,1) = ploter(:,1) + vec(1);
 ploter(:,3) = ploter(:,3) +  vec(3);
 csvwrite("result.csv", result);
 plot3(ploter(:,1), ploter(:,3), ploter(:,2));
-vect
+vector
 startpoint = result(1, 1:3)
 grid on;
+view([-45 45 45]);
+
 xlabel("x");
 ylabel("z");
 zlabel("y");
@@ -152,15 +143,15 @@ function [dYdt] = f(t, Y)
   second = 0;
   dYdt = zeros(6, 1);
   if Y(2) > 0 && Y(2) < 1600
-    first = XWdata(fix(Y(2))  + 1);
+    first = XWdata(fix(Y(2))  + 1);;
     second = YWdata(fix(Y(2))  + 1);
   end
-  dYdt(1) = Y(4) + first; % dx/dt = vx
-  dYdt(2) = Y(5); % dy/dt = vy
-  dYdt(3) = Y(6) + second;  % dz/dt = vz
-  dYdt(4) = - (R / mass) * Y(4) / vLength;    % dvx/dt = 0
-  dYdt(5) = - (R / mass) * Y(5) / vLength - g;   % dvy/dt = -g
-  dYdt(6) = - (R / mass) * Y(6) / vLength;   % dvz/dt = 0
+  dYdt(1) = Y(4) + first; 
+  dYdt(2) = Y(5); 
+  dYdt(3) = Y(6) + second;  
+  dYdt(4) = - (R / mass) * Y(4) / vLength;    
+  dYdt(5) = - (R / mass) * Y(5) / vLength - g;   
+  dYdt(6) = - (R / mass) * Y(6) / vLength;
   
 end
   
