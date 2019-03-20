@@ -60,6 +60,7 @@ vec(2) = 0;
 vec = finish - vec;
 result(:,1) = result(:,1) + vec(1);
 result(:,3) = result(:,3) + vec(3);
+result(length(result), 2) = 0;
 ploter(:,1) = ploter(:,1) + vec(1);
 ploter(:,3) = ploter(:,3) +  vec(3);
 csvwrite("result.csv", result);
